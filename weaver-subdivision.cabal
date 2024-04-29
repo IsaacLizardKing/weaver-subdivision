@@ -37,6 +37,7 @@ library
 executable weaver-subdivision-exe
   main-is: Main.hs
   other-modules:
+      Subdiv
       Paths_weaver_subdivision
   autogen-modules:
       Paths_weaver_subdivision
