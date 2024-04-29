@@ -3,11 +3,54 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
-packages: []
-snapshots:
+packages:
 - completed:
-    sha256: 0be74c2dd964ab0e8887c1ece93b7c02e1cc2af11f5e3cc334300a5871e73917
-    size: 640028
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/21/8.yaml
+    hackage: GLFW-b-3.3.0.0@sha256:73ce15e4b82a3a9aea5ab38ae823f5313777eea5a9c3b29caf262f3495c5a1f2,2427
+    pantry-tree:
+      sha256: 1f4ccbfb930578e4d60768d21b58eab393ce9b5f4da2c2e41285fcb22c06ee28
+      size: 482
   original:
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/21/8.yaml
+    hackage: GLFW-b-3.3.0.0@sha256:73ce15e4b82a3a9aea5ab38ae823f5313777eea5a9c3b29caf262f3495c5a1f2,2427
+- completed:
+    hackage: gl-0.9@sha256:99e79411432a8f6d3893a767118715442ba643795e415873f43879276a5a1ea7,35740
+    pantry-tree:
+      sha256: d71a7ca84d239031d71462359099b2e2469e8777382953eecd085de815bec932
+      size: 77044
+  original:
+    hackage: gl-0.9@sha256:99e79411432a8f6d3893a767118715442ba643795e415873f43879276a5a1ea7,35740
+- completed:
+    hackage: raw-strings-qq-1.1@sha256:3ea0f14f036649e3576749aef0db4dd0b1102c5331f2e0e2551250e2030ce669,1467
+    pantry-tree:
+      sha256: 473e62ea5320c8734f66049e48b308dd0ab197c6d3071c8ca1a828b05b7536ae
+      size: 379
+  original:
+    hackage: raw-strings-qq-1.1@sha256:3ea0f14f036649e3576749aef0db4dd0b1102c5331f2e0e2551250e2030ce669,1467
+- completed:
+    hackage: bindings-GLFW-3.3.2.0@sha256:e286d28248619f968c3f5ccd3fc3578c7ff4cc0372ca54635f3adce9b1d09b3a,6301
+    pantry-tree:
+      sha256: ea185a420f9a836199231ed437739b3a04655247ea7f08f2626cf9a3d8fa828c
+      size: 4543
+  original:
+    hackage: bindings-GLFW-3.3.2.0@sha256:e286d28248619f968c3f5ccd3fc3578c7ff4cc0372ca54635f3adce9b1d09b3a,6301
+- completed:
+    hackage: fixed-0.3@sha256:f76bb14011911bdd9d71ecc16ffc8000821adfefdd48b38f952b2484900f37f6,868
+    pantry-tree:
+      sha256: 6ab63adf4af4b898400af30d98bc31669c8509c20067ccd04831264991bc78b2
+      size: 426
+  original:
+    hackage: fixed-0.3@sha256:f76bb14011911bdd9d71ecc16ffc8000821adfefdd48b38f952b2484900f37f6,868
+- completed:
+    hackage: half-0.3.1@sha256:5aabf5325762b2d6335b9e3f88602431af2b954e14b058bea3e93168a8e0eb53,2058
+    pantry-tree:
+      sha256: e44f2e2dba15466712f8a5c523bdccb2e6c7e70506a23e6d45766f82fcbbd4b0
+      size: 502
+  original:
+    hackage: half-0.3.1@sha256:5aabf5325762b2d6335b9e3f88602431af2b954e14b058bea3e93168a8e0eb53,2058
+- completed:
+    hackage: bindings-DSL-1.0.25@sha256:a469ff5e6a5b94c3781b4b458cedca744eb5b497ef838902151ec912aa5aed57,1507
+    pantry-tree:
+      sha256: 5e594ee30dddcfb779e4dc86d995de553591a395a1d8f7bf43c0d7ed91ba4ddb
+      size: 381
+  original:
+    hackage: bindings-DSL-1.0.25@sha256:a469ff5e6a5b94c3781b4b458cedca744eb5b497ef838902151ec912aa5aed57,1507
+snapshots: []

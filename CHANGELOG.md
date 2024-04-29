@@ -1,4 +1,4 @@
-# Changelog for `Demoman-TF2`
+# Changelog for `weaver-subdivision`
 
 All notable changes to this project will be documented in this file.
 

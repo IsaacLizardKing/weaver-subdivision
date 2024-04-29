@@ -17,8 +17,7 @@
 #
 # resolver: ./custom-snapshot.yaml
 # resolver: https://example.com/snapshots/2018-01-01.yaml
-resolver:
-  url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/21/8.yaml
+resolver: ghc-9.4.8
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -41,6 +40,15 @@ packages:
 #   commit: e7b331f14bcffb8367cd58fbfc8b40ec7642100a
 #
 # extra-deps: []
+
+extra-deps:
+           - GLFW-b-3.3.0.0@sha256:73ce15e4b82a3a9aea5ab38ae823f5313777eea5a9c3b29caf262f3495c5a1f2,2427
+           - gl-0.9@sha256:99e79411432a8f6d3893a767118715442ba643795e415873f43879276a5a1ea7,35740
+           - raw-strings-qq-1.1@sha256:3ea0f14f036649e3576749aef0db4dd0b1102c5331f2e0e2551250e2030ce669,1467
+           - bindings-GLFW-3.3.2.0@sha256:e286d28248619f968c3f5ccd3fc3578c7ff4cc0372ca54635f3adce9b1d09b3a,6301
+           - fixed-0.3@sha256:f76bb14011911bdd9d71ecc16ffc8000821adfefdd48b38f952b2484900f37f6,868
+           - half-0.3.1@sha256:5aabf5325762b2d6335b9e3f88602431af2b954e14b058bea3e93168a8e0eb53,2058
+           - bindings-DSL-1.0.25@sha256:a469ff5e6a5b94c3781b4b458cedca744eb5b497ef838902151ec912aa5aed57,1507
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
