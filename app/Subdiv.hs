@@ -1,6 +1,6 @@
 {-# LANGUAGE GADTs #-}
 
-module Subdiv where
+module Subdiv () where
 
 import Data.Maybe (catMaybes)
 import Graphics.GL
@@ -19,11 +19,11 @@ type EdgeDivide = Point -> Point -> Point
 
 type Level = Word
 
-subdiv :: EdgeDivide -> LOD -> Level -> TrisData -> Tri -> TrisData
-subdiv edgeDiv lod level tdata start = _
-  where
-    (tdata', rim) = getRim edgeDiv lod level tdata start
-    corners = filter _ (genCorners rim) -- TODO(colin): filter out the degenerate case
+-- subdiv :: EdgeDivide -> LOD -> Level -> TrisData -> Tri -> TrisData
+-- subdiv edgeDiv lod level tdata start = _
+--   where
+--     (tdata', rim) = getRim edgeDiv lod level tdata start
+--     corners = filter _ (genCorners rim) -- TODO(colin): filter out the degenerate case
 
 getRim :: EdgeDivide -> LOD -> Level -> TrisData -> Tri -> (TrisData, [GLuint])
 getRim edgeDiv lod level (TrisData verts idx) tri = (TrisData verts''' idx, rim)

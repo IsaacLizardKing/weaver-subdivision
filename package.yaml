@@ -24,6 +24,7 @@ dependencies:
 - GLFW-b
 - gl
 - raw-strings-qq
+- containers
 
 ghc-options:
 - -Wall
