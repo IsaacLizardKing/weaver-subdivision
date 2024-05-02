@@ -12,8 +12,8 @@ type TriIndices = (GLuint, GLuint, GLuint)
 
 type Index = GLuint
 
-getCorner :: [Index] -> Index -> ([Index], TriIndices)
-getCorner list idx = (filter (/= idx) list, (prev, idx, next))
+getCorner :: Index -> [Index] -> ([Index], TriIndices)
+getCorner idx list = (filter (/= idx) list, (prev, idx, next))
   where
     prev = getBefore idx list
     next = getAfter idx list
@@ -81,7 +81,7 @@ getRim2 edgeDiv lod level trisdata edgePoints =
   where
     f (a, b) (tdata@(TrisData verts _), r, m) = case superDuperEdgeDiv edgeDiv lod level verts a b of
       Nothing -> (tdata, r ++ [a], m)
-      Just p -> let (tdata', i) = addPoint p tdata in (tdata', r ++ [a, i], M.adjust (+ 1) b $ M.adjust (+ 1) a m)
+      Just p -> let (tdata', i) = addPoint p tdata in (tdata', r ++ [i, a], M.adjust (+ 1) b $ M.adjust (+ 1) a m)
 
 addPoint :: Point -> TrisData -> (TrisData, Index)
 addPoint point (TrisData verts indices) = (TrisData (verts ++ [point]) indices, toEnum $ length verts)
@@ -90,8 +90,15 @@ type Priority = Int
 
 
 avg (x1,y1,z1) (x2,y2,z2) = ((x1+x2)/2.0,(y1+y2)/2.0,(z1+z2)/2.0)
-t = (TrisData [(-5.0,0.0,0.0),(1.0,0.0,0.0),(1.0,0.0,0.0)] [(1,2,3)])
+t = (TrisData [(-5.0,0.0,0.0),(1.0,0.0,1.0),(1.0,0.0,-1.0)] [])
 
 l = getRim2 avg (\(x,y,z) -> if x < 0 then 2 else 0) 0 t [0,1,2]
 (d, ids, m) = l
-clipInOrder = map fst $ sortBy (\(x,y) (a,b) -> compare b y) (M.toList m)
+clipInOrder = map fst $ sortBy (\(x,y) (a,b) -> compare y b) (M.toList m)
+
+clips = foldr g (ids, []) clipInOrder
+
+g index (indices, tris) = (i',tris')
+  where
+    (i',tri) = getCorner index indices
+    tris' = tris ++ [tri]
