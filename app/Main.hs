@@ -181,9 +181,9 @@ main = bracketGLFW $ do
 
             -- setup our verticies
             let verticies = [
-                    0.5,  0.5, 0.0,  -- Top Right
-                    0.5, -0.5, 0.0,  -- Bottom Right
-                    -0.5, -0.5, 0.0, -- Bottom Left
+                    0.0,  1.0, 0.0,  -- Top Right
+                    -1.0, -1.0, 0.0,  -- Bottom Right
+                    1.0, -1.0, 0.0, -- Bottom Left
                     -0.5,  0.5, 0.0  -- Top Left
                     ] :: [GLfloat]
             let verticesSize = fromIntegral $ sizeOf (0.0 :: GLfloat) * (length verticies)
@@ -191,7 +191,7 @@ main = bracketGLFW $ do
 
             -- setup the indexes
             let indices = [  -- Note that we start from 0!
-                    0, 1, 3, -- First Triangle
+                    0, 1, 2, -- First Triangle
                     1, 2, 3  -- Second Triangle
                     ] :: [GLuint]
             let indicesSize = fromIntegral $ sizeOf (0 :: GLuint) * (length indices)
@@ -227,7 +227,7 @@ main = bracketGLFW $ do
             glBindVertexArray 0
 
             -- Uncomment this line for "wireframe mode"
-            -- glPolygonMode GL_FRONT_AND_BACK GL_LINE
+            glPolygonMode GL_FRONT_AND_BACK GL_LINE
 
             -- enter our main loop
             let loop = do
@@ -240,7 +240,7 @@ main = bracketGLFW $ do
                         glClear GL_COLOR_BUFFER_BIT
                         -- draw the triangle
                         glBindVertexArray vao
-                        glDrawElements GL_TRIANGLES 6 GL_UNSIGNED_INT nullPtr
+                        glDrawElements GL_TRIANGLES 3 GL_UNSIGNED_INT nullPtr
                         glBindVertexArray 0
                         -- swap buffers and go again
                         GLFW.swapBuffers window
