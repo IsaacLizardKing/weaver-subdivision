@@ -12,7 +12,7 @@
 
 import ClipSubdiv (TrisData (TrisData), subdivide)
 import Control.Exception (bracket)
-import Control.Monad (when)
+import Control.Monad (when, foldM)
 import Data.Maybe (fromMaybe)
 import Foreign
 import Foreign.C.String (withCAStringLen)
@@ -22,6 +22,7 @@ import Graphics.UI.GLFW (Key (Key'Space), KeyState (KeyState'Pressed))
 import qualified Graphics.UI.GLFW as GFLW
 import qualified Graphics.UI.GLFW as GLFW
 import Text.RawString.QQ
+import Control.Applicative ((<|>))
 
 winWidth = 800
 
@@ -249,14 +250,8 @@ main = bracketGLFW $ do
       -- Uncomment this line for "wireframe mode"
       glPolygonMode GL_FRONT_AND_BACK GL_LINE
 
-      demo <- malloc :: IO (Ptr Int)
-      poke demo 1
-
-      coef <- malloc :: IO (Ptr Float)
-      poke coef 0
-
       -- enter our main loop
-      let loop = do
+      let loop demo coef = do
             shouldContinue <- not <$> GLFW.windowShouldClose window
             when shouldContinue $ do
               -- event poll
@@ -267,8 +262,7 @@ main = bracketGLFW $ do
               -- Demo helpers
 
               let avg (x1, y1, z1) (x2, y2, z2) = ((x1 + x2) / 2.0, (y1 + y2) / 2.0, (z1 + z2) / 2.0)
-              c <- peek coef
-              let lod (x, _, _) = toEnum $ min 7 $ round ((x + 1) / 2.0 * c) + 1
+              let lod (x, _, _) = toEnum $ min 7 $ round ((x + 1) / 2.0 * coef) + 1
               let leftOfCenter (x, _, _) = if x < 0 then 5 else 2
               let trans fn (TrisData vs is) = TrisData (map fn vs) is
 
@@ -276,26 +270,20 @@ main = bracketGLFW $ do
 
               -- Demo chooser
 
-              let onKey action key = do
+              let keyP key value = do
                     k <- GLFW.getKey window key
                     case k of
-                      KeyState'Pressed -> action
-                      _ -> return ()
+                      KeyState'Pressed -> return $ Just value
+                      _ -> return Nothing
 
-              let demoKey value = onKey (poke demo value)
+              scenes <- sequence [keyP GLFW.Key'0 0, keyP GLFW.Key'1 1, keyP GLFW.Key'2 2]
+              let demo' = fromMaybe demo $ foldl1 (<|>) scenes
 
-              demoKey 1 GLFW.Key'1
-              demoKey 2 GLFW.Key'2
-              demoKey 0 GLFW.Key'0
-
-              onKey (peek coef >>= \v -> poke coef (v + 0.1)) GLFW.Key'Up
-              onKey (peek coef >>= \v -> poke coef (v - 0.1)) GLFW.Key'Down
-
-
-              d <- peek demo :: IO Int
+              change <- sequence [keyP GLFW.Key'Up (+0.1), keyP GLFW.Key'Down (+ (-0.1))]
+              let coef' = (fromMaybe id $ foldl1 (<|>) change) coef
 
               let (TrisData vs is) =
-                    case d of
+                    case demo' of
                       1 ->
                         subdivide avg lod 0 (rotate start) [0, 1, 2]
                         where
@@ -335,7 +323,8 @@ main = bracketGLFW $ do
               glBindVertexArray 0
               -- swap buffers and go again
               GLFW.swapBuffers window
-              loop
-      loop
+
+              loop demo' coef'
+      loop (1 :: Int) (0.5 :: Float)
 
 --
