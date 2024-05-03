@@ -1,33 +1,25 @@
+{-# OPTIONS_GHC -Wall #-}
 {-# LANGUAGE QuasiQuotes #-}
-
--- base
-
--- includes many sub-modules
-
--- GLFW-b
-
--- gl
-
--- raw-strings-qq
 
 import ClipSubdiv (TrisData (TrisData), subdivide)
 import Control.Exception (bracket)
-import Control.Monad (when, foldM)
+import Control.Monad (when)
 import Data.Maybe (fromMaybe)
 import Foreign
 import Foreign.C.String (withCAStringLen)
 import Graphics.GL.Core33
 import Graphics.GL.Types
-import Graphics.UI.GLFW (Key (Key'Space), KeyState (KeyState'Pressed))
-import qualified Graphics.UI.GLFW as GFLW
 import qualified Graphics.UI.GLFW as GLFW
 import Text.RawString.QQ
 import Control.Applicative ((<|>))
 
+winWidth :: Int
 winWidth = 800
 
+winHeight :: Int
 winHeight = 600
 
+winTitle :: String
 winTitle = "Hello Triangle"
 
 -- | Ensures that we only run GLFW code while it's initialized, and also that we
@@ -39,11 +31,9 @@ bracketGLFW act = bracket GLFW.init (const GLFW.terminate) $ \initWorked ->
 
 -- type KeyCallback = Window -> Key -> Int -> KeyState -> ModifierKeys -> IO ()
 callback :: GLFW.KeyCallback
-callback window key scanCode keyState modKeys = do
-  -- print key
-  when
-    (key == GLFW.Key'Escape && keyState == GLFW.KeyState'Pressed)
-    (GLFW.setWindowShouldClose window True)
+callback window key _scanCode keyState _modKeys = when
+  (key == GLFW.Key'Escape && keyState == GLFW.KeyState'Pressed)
+  (GLFW.setWindowShouldClose window True)
 
 vertexShaderSource :: String
 vertexShaderSource =
@@ -112,7 +102,7 @@ loadShader shaderType source = do
         Left $
           prefix
             ++ " Shader Error:"
-            ++ (map (toEnum . fromEnum) logBytes)
+            ++ map (toEnum . fromEnum) logBytes
 
 -- | Given a vertex shader object and a fragment shader object, this will link
 -- them into a new program, giving you (Right id). If there's a linking error
@@ -149,7 +139,7 @@ linkProgram vertexID fragmentID = do
       return $
         Left $
           "Program Link Error: "
-            ++ (map (toEnum . fromEnum) logBytes)
+            ++ map (toEnum . fromEnum) logBytes
 
 -- | Given the source for the vertex shader and the fragment shader, compiles
 -- both and links them into a single program. If all of that is successful, the
@@ -169,7 +159,7 @@ programFromSources vertexSource fragmentSource = do
           eitherProgram <- linkProgram vertShader fragShader
           glDeleteShader vertShader
           glDeleteShader fragShader
-          return $ eitherProgram
+          return eitherProgram
 
 main :: IO ()
 main = bracketGLFW $ do
@@ -181,42 +171,18 @@ main = bracketGLFW $ do
   case maybeWindow of
     Nothing -> putStrLn "Failed to create a GLFW window!"
     Just window -> do
-      -- enable keys
       GLFW.setKeyCallback window (Just callback)
 
-      -- calibrate the viewport
       GLFW.makeContextCurrent (Just window)
-      (x, y) <- GLFW.getFramebufferSize window
-      glViewport 0 0 (fromIntegral x) (fromIntegral y)
+      (winX, winY) <- GLFW.getFramebufferSize window
+      glViewport 0 0 (fromIntegral winX) (fromIntegral winY)
 
-      -- ready our program
       eErrP <- programFromSources vertexShaderSource fragmentShaderSource
       shaderProgram <- case eErrP of
         Left e -> putStrLn e >> return 0
         Right p -> return p
 
-      -- activate the program
       glUseProgram shaderProgram
-
-      --
-      -- -- setup our verticies
-      -- let verticies = [
-      --         0.5,  0.5, 0.0,  -- Top Right
-      --         0.5, -0.5, 0.0,  -- Bottom Right
-      --         -0.5, -0.5, 0.0, -- Bottom Left
-      --         -0.5,  0.5, 0.0  -- Top Left
-      --         ] :: [GLfloat]
-      -- let verticesSize = fromIntegral $ sizeOf (0.0 :: GLfloat) * (length verticies)
-      -- verticesP <- newArray verticies
-      --
-      -- -- setup the indexes
-      -- let indices = [  -- Note that we start from 0!
-      --         0, 1, 3, -- First Triangle
-      --         1, 2, 3  -- Second Triangle
-      --         ] :: [GLuint]
-      --
-      -- let indicesSize = fromIntegral $ sizeOf (0 :: GLuint) * (length indices)
-      -- indicesP <- newArray indices
 
       -- setup a vertex array object
       vaoP <- malloc
@@ -224,19 +190,17 @@ main = bracketGLFW $ do
       vao <- peek vaoP
       glBindVertexArray vao
 
-      -- setup a vertex buffer object and send it data
+      -- setup a VBO
       vboP <- malloc
       glGenBuffers 1 vboP
       vbo <- peek vboP
       glBindBuffer GL_ARRAY_BUFFER vbo
-      -- glBufferData GL_ARRAY_BUFFER verticesSize (castPtr verticesP) GL_STATIC_DRAW
 
-      -- setup an element buffer object and send it data
+      -- setup an EBO
       eboP <- malloc
       glGenBuffers 1 eboP
       ebo <- peek eboP
       glBindBuffer GL_ELEMENT_ARRAY_BUFFER ebo
-      -- glBufferData GL_ELEMENT_ARRAY_BUFFER indicesSize (castPtr indicesP) GL_STATIC_DRAW
 
       -- assign the attribute pointer information
       let threeFloats = fromIntegral $ sizeOf (0.0 :: GLfloat) * 3
@@ -247,10 +211,9 @@ main = bracketGLFW $ do
       -- between our draw calls.
       glBindVertexArray 0
 
-      -- Uncomment this line for "wireframe mode"
       glPolygonMode GL_FRONT_AND_BACK GL_LINE
 
-      -- enter our main loop
+      -- main loop
       let loop demo coef controllable = do
             shouldContinue <- not <$> GLFW.windowShouldClose window
             when shouldContinue $ do
@@ -263,19 +226,19 @@ main = bracketGLFW $ do
 
               let avg (x1, y1, z1) (x2, y2, z2) = ((x1 + x2) / 2.0, (y1 + y2) / 2.0, (z1 + z2) / 2.0)
               let lod (x, _, _) = toEnum $ min 7 $ round ((x + 1) / 2.0 * coef) + 1
-              let leftOfCenter (x, _, _) = if x < 0 then 5 else 2
+              let _leftOfCenter (x, _, _) = if x < 0 then 5 else 2
               let trans fn (TrisData vs is) = TrisData (map fn vs) is
-              let ripple (x, y, _) = toEnum $ max 2 $ min 6 $ round (controllable + 3 * cos (sqrt (x ^ 2 + y ^ 2) * coef - time))
+              let ripple (x, y, _) = toEnum $ max 2 $ min 6 $ round (controllable + 3 * cos (sqrt (x ^ (2 :: Int) + y ^ (2 :: Int)) * coef - time))
               let movable (x, y, _) = toEnum $ max 0 $ min 6 $ round (coef + (x * sin controllable + y * cos controllable))
 
-              let rotate = trans (\(x, y, z) -> (x * (cos time) - y * (sin time), x * (sin time) + y * (cos time), z))
+              let vertRotate = trans (\(x, y, z) -> (x * cos time - y * sin time, x * sin time + y * cos time, z))
 
               -- Demo chooser
 
               let keyP key value = do
                     k <- GLFW.getKey window key
                     case k of
-                      KeyState'Pressed -> return $ Just value
+                      GLFW.KeyState'Pressed -> return $ Just value
                       _ -> return Nothing
 
               scenes <- sequence [keyP GLFW.Key'0 0, keyP GLFW.Key'1 1, keyP GLFW.Key'2 2, keyP GLFW.Key'3 3, keyP GLFW.Key'4 4, keyP GLFW.Key'5 5, keyP GLFW.Key'6 6, keyP GLFW.Key'7 7, keyP GLFW.Key'8 8, keyP GLFW.Key'9 9]
@@ -290,11 +253,11 @@ main = bracketGLFW $ do
               let (TrisData vs is) =
                     case demo' of
                       1 ->
-                        subdivide avg lod 0 (rotate start) [0, 1, 2]
+                        subdivide avg lod 0 (vertRotate start) [0, 1, 2]
                         where
                           start = TrisData [(-0.8, 0.0, 0.0), (0.4, 0.4, 0.0), (0.5, -0.6, 0.0)] []
                       2 ->
-                        subdivide avg lod 0 (rotate penta) [0, 1, 2, 3, 4]
+                        subdivide avg lod 0 (vertRotate penta) [0, 1, 2, 3, 4]
                         where
                           tau = 2 * pi
                           co = 0.7
@@ -330,10 +293,10 @@ main = bracketGLFW $ do
               let vertices = concatMap (\(x, y, z) -> [x, y, z]) vs
               let indices = concatMap (\(i, ii, iii) -> [i, ii, iii]) is
 
-              let verticesSize = fromIntegral $ sizeOf (0.0 :: GLfloat) * (length vertices)
+              let verticesSize = fromIntegral $ sizeOf (0.0 :: GLfloat) * length vertices
               verticesP <- newArray vertices
 
-              let indicesSize = fromIntegral $ sizeOf (0 :: GLuint) * (length indices)
+              let indicesSize = fromIntegral $ sizeOf (0 :: GLuint) * length indices
               indicesP <- newArray indices
 
               glBindBuffer GL_ARRAY_BUFFER vbo
@@ -352,6 +315,6 @@ main = bracketGLFW $ do
               GLFW.swapBuffers window
 
               loop demo' coef' controllable'
-      loop (1 :: Int) (0.5 :: Float) (0.0 :: Float)
+      loop (1 :: Int) (0.5 :: Float) (3.0 :: Float)
 
 --

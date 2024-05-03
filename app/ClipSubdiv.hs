@@ -1,11 +1,11 @@
+{-# OPTIONS_GHC -Wall #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE TupleSections #-}
 
 module ClipSubdiv (TrisData (TrisData), subdivide) where
 
-import Data.List
+import Data.List ( elemIndex, sortBy )
 import qualified Data.Map as M
-import Data.Maybe
 import Graphics.GL
 
 data TrisData where

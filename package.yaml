@@ -37,9 +37,6 @@ ghc-options:
 - -Wpartial-fields
 - -Wredundant-constraints
 
-library:
-  source-dirs: src
-
 executables:
   weaver-subdivision-exe:
     main:                Main.hs
@@ -48,16 +45,3 @@ executables:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
-    dependencies:
-    - weaver-subdivision
-
-tests:
-  weaver-subdivision-test:
-    main:                Spec.hs
-    source-dirs:         test
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - weaver-subdivision
