@@ -251,7 +251,7 @@ main = bracketGLFW $ do
       glPolygonMode GL_FRONT_AND_BACK GL_LINE
 
       -- enter our main loop
-      let loop demo coef = do
+      let loop demo coef controllable = do
             shouldContinue <- not <$> GLFW.windowShouldClose window
             when shouldContinue $ do
               -- event poll
@@ -265,6 +265,8 @@ main = bracketGLFW $ do
               let lod (x, _, _) = toEnum $ min 7 $ round ((x + 1) / 2.0 * coef) + 1
               let leftOfCenter (x, _, _) = if x < 0 then 5 else 2
               let trans fn (TrisData vs is) = TrisData (map fn vs) is
+              let ripple (x, y, _) = toEnum $ max 2 $ min 6 $ round (controllable + 3 * cos (sqrt (x ^ 2 + y ^ 2) * coef - time))
+              let movable (x, y, _) = toEnum $ max 0 $ min 6 $ round (coef + (x * sin controllable + y * cos controllable))
 
               let rotate = trans (\(x, y, z) -> (x * (cos time) - y * (sin time), x * (sin time) + y * (cos time), z))
 
@@ -276,11 +278,14 @@ main = bracketGLFW $ do
                       KeyState'Pressed -> return $ Just value
                       _ -> return Nothing
 
-              scenes <- sequence [keyP GLFW.Key'0 0, keyP GLFW.Key'1 1, keyP GLFW.Key'2 2]
+              scenes <- sequence [keyP GLFW.Key'0 0, keyP GLFW.Key'1 1, keyP GLFW.Key'2 2, keyP GLFW.Key'3 3, keyP GLFW.Key'4 4, keyP GLFW.Key'5 5, keyP GLFW.Key'6 6, keyP GLFW.Key'7 7, keyP GLFW.Key'8 8, keyP GLFW.Key'9 9]
               let demo' = fromMaybe demo $ foldl1 (<|>) scenes
 
-              change <- sequence [keyP GLFW.Key'Up (+0.1), keyP GLFW.Key'Down (+ (-0.1))]
+              change <- sequence [keyP GLFW.Key'Up (+0.1), keyP GLFW.Key'Down (+ (-0.1)), keyP GLFW.Key'0 (const 0)]
               let coef' = (fromMaybe id $ foldl1 (<|>) change) coef
+
+              move <- sequence [keyP GLFW.Key'Left (+0.1), keyP GLFW.Key'Right (+ (-0.1))]
+              let controllable' = (fromMaybe id $ foldl1 (<|>) move) controllable
 
               let (TrisData vs is) =
                     case demo' of
@@ -290,6 +295,28 @@ main = bracketGLFW $ do
                           start = TrisData [(-0.8, 0.0, 0.0), (0.4, 0.4, 0.0), (0.5, -0.6, 0.0)] []
                       2 ->
                         subdivide avg lod 0 (rotate penta) [0, 1, 2, 3, 4]
+                        where
+                          tau = 2 * pi
+                          co = 0.7
+                          vs2 = map ((\t -> (co * cos t, co * sin t, 0.0)) . (* tau) . (/ 5)) [0 .. 4]
+                          penta = TrisData vs2 []
+                      3 ->
+                        subdivide avg ripple 0 start [0, 1, 2]
+                        where
+                          start = TrisData [(0.0, 0.8, 0.0), (-0.8, -0.8, 0.0), (0.8, -0.8, 0.0)] []
+                      4 ->
+                        subdivide avg ripple 0 penta [0, 1, 2, 3, 4]
+                        where
+                          tau = 2 * pi
+                          co = 0.7
+                          vs2 = map ((\t -> (co * cos t, co * sin t, 0.0)) . (* tau) . (/ 5)) [0 .. 4]
+                          penta = TrisData vs2 []
+                      5 ->
+                        subdivide avg movable 0 start [0, 1, 2]
+                        where
+                          start = TrisData [(0.0, 0.8, 0.0), (-0.8, -0.8, 0.0), (0.8, -0.8, 0.0)] []
+                      6 ->
+                        subdivide avg movable 1 penta [0, 1, 2, 3, 4]
                         where
                           tau = 2 * pi
                           co = 0.7
@@ -324,7 +351,7 @@ main = bracketGLFW $ do
               -- swap buffers and go again
               GLFW.swapBuffers window
 
-              loop demo' coef'
-      loop (1 :: Int) (0.5 :: Float)
+              loop demo' coef' controllable'
+      loop (1 :: Int) (0.5 :: Float) (0.0 :: Float)
 
 --

@@ -1,7 +1,7 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE TupleSections #-}
 
-module ClipSubdiv where
+module ClipSubdiv (TrisData (TrisData), subdivide) where
 
 import Data.List
 import qualified Data.Map as M
@@ -62,8 +62,8 @@ triangulateIrreducible (i : ii : iii : rest) = (i, ii, iii) : triangulateIrreduc
 
 
 --------------------------------------------------------------------------------------
------    <: MULCH GANG :>    -       *                 SISTERS OF       . .      -----
------     \   4 LYFE   /  +    #   Helper Functions     THE LOAM      ^-._,-^    -----
+----- *  <: MULCH GANG :>    -       *                 SISTERS OF       . .      -----
+-----   - \   4 LYFE   /  +    #   Helper Functions     THE LOAM      ^-._.-^    -----
 -----  #   `-.______.-' .  *     -      -               UNITE <3    MULCH MULCH  -----
 --------------------------------------------------------------------------------------
 
