@@ -47,19 +47,19 @@ type Priority = Int
 -- Algorithm:
 -- First, `start` gets midpoints added to its edges with edgeDiv, 
 -- if the level of detail function says they should exist.
--- Then, the corners of this rim are are clipped off, 
+-- Then, the corners of this rim are clipped off, 
 -- starting with corner next to the most subdivided edges.
 -- A corner is centered on one of the original `start` vertices
 -- in order of which has the most midpoints next to it.
 -- Once we have this list corners triangles, we recurse on these,
 -- increasing the level by 1. Sometimes, after clipping all corners,
--- there is a polygon still leftover in the middle, and we recurse on this
+-- there is a polygon still leftover in the middle, and we recurse on this.
 --
 -- The base case of all this recursion is when we find an "irreducible"
 -- shape. An irreducible shape is anything we couldn't subdivide the edges of
 -- This can happen either when the `level` is higher than what the LOD
 -- function yeilds, or if we have less than 3 vertices.
--- Once we find an irriducable shape, we triangulate it, then return
+-- Once we find an irriducable shape, we triangulate it, then return.
 subdivide :: EdgeDivide -> LOD -> Level -> TrisData -> [Index] -> TrisData
 subdivide edgeDiv lod level d@(TrisData vs is) start =
   case subdivRim edgeDiv lod level d start of
