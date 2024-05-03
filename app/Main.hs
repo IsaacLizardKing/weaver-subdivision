@@ -10,7 +10,7 @@
 
 -- raw-strings-qq
 
-import ClipSubdiv (TrisData (TrisData), newdata, subdivide, t2)
+import ClipSubdiv (TrisData (TrisData), subdivide)
 import Control.Exception (bracket)
 import Control.Monad (when)
 import Data.Maybe (fromMaybe)
