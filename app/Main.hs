@@ -316,5 +316,3 @@ main = bracketGLFW $ do
 
               loop demo' coef' controllable'
       loop (1 :: Int) (0.5 :: Float) (3.0 :: Float)
-
---
