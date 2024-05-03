@@ -75,19 +75,32 @@ addPoint point (TrisData verts indices) = (TrisData (verts ++ [point]) indices, 
 avg (x1,y1,z1) (x2,y2,z2) = ((x1+x2)/2.0,(y1+y2)/2.0,(z1+z2)/2.0)
 t = (TrisData [(-0.8,0.0,0.0),(0.4,0.4,0.0),(0.5,-0.6,0.0)] [])
 
-l = rim avg (\(x,y,z) -> if x < 0 then 2 else 0) 0 t [0,1,2]
-(d, ids, m) = l
-clipInOrder = map fst $ sortBy (\(x,y) (a,b) -> compare y b) (M.toList m)
-
-clips = foldr g (ids, []) clipInOrder
+-- l = rim avg (\(x,y,z) -> if x < 0 then 2 else 0) 0 t [0,1,2]
+-- l = rim avg (const 2) 0 t [0,1,2]
+-- (d, ids, m) = l
+-- clipInOrder = map fst $ sortBy (\(x,y) (a,b) -> compare y b) (M.toList m)
+--
+-- clips = foldr g (ids, []) clipInOrder
+--
+-- newdata :: TrisData
+-- newdata = TrisData vs (is ++ tris)
+--   where
+--     (TrisData vs is) = d
+--     (remaining, tris) = clips
 
 newdata :: TrisData
-newdata = TrisData vs (is ++ tris)
-  where
-    (TrisData vs is) = d
-    (remaining, tris) = clips
+newdata = subdivide avg (const 2) 0 t [0,1,2]
 
-g index (indices, tris) = (i',tris')
+subdivide :: EdgeDivide -> LOD -> Level -> TrisData -> [Index] -> TrisData
+subdivide edgeDiv lod level d start
+  | length start < 3 = d
+  | otherwise = subdivide edgeDiv lod (level + 1) (TrisData vs (is ++ clipped)) remaining
   where
-    (i',tri) = getCorner index indices
-    tris' = tris ++ [tri]
+    (TrisData vs is, rimIdxs, prio) = rim edgeDiv lod level d start
+    clipOrder = map fst $ sortBy (\(_,y) (_,b) -> compare y b) (M.toList prio)
+    (remaining, clipped) = foldr clipCorner (rimIdxs, []) clipOrder
+
+clipCorner :: Index -> ([Index], [TriIndices]) -> ([Index], [TriIndices])
+clipCorner index (remaining, tris) = (remaining', tris ++ [tri])
+  where
+    (remaining', tri) = getCorner index remaining
