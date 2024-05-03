@@ -77,6 +77,8 @@ addPoint point (TrisData verts indices) = (TrisData (verts ++ [point]) indices, 
 avg (x1, y1, z1) (x2, y2, z2) = ((x1 + x2) / 2.0, (y1 + y2) / 2.0, (z1 + z2) / 2.0)
 
 t = (TrisData [(-0.8, 0.0, 0.0), (0.4, 0.4, 0.0), (0.5, -0.6, 0.0)] [])
+-- t2 = (TrisData [(-0.8, 0.0, 0.0), (0.4, 0.4, 0.0), (0.5, -0.6, 0.0)] [])
+
 
 -- l = rim avg (\(x,y,z) -> if x < 0 then 2 else 0) 0 t [0,1,2]
 -- l = rim avg (const 2) 0 t [0,1,2]
@@ -94,8 +96,12 @@ t = (TrisData [(-0.8, 0.0, 0.0), (0.4, 0.4, 0.0), (0.5, -0.6, 0.0)] [])
 
 leftOfCenter (x, _, _) = if x < 0 then 3 else 1
 
+grad (x, _, _) = toEnum $ round ((x + 1) / 2.0 * gradCoef) + 1
+
+gradCoef = 5.0
+
 newdata :: TrisData
-newdata = subdivide2 avg (leftOfCenter) 0 t [0, 1, 2]
+newdata = subdivide2 avg (grad) 0 t [0, 1, 2]
 
 -- subdivide :: EdgeDivide -> LOD -> Level -> TrisData -> [Index] -> TrisData
 -- subdivide edgeDiv lod level d start
