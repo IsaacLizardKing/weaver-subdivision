@@ -60,20 +60,23 @@ edgePairs :: [b] -> [(b, b)]
 edgePairs edgeList = zip edgeList (rotl edgeList)
 
 rim :: EdgeDivide -> LOD -> Level -> TrisData -> [Index] -> (TrisData, [GLuint], M.Map Index Priority)
-rim edgeDiv lod level trisdata edgePoints =
-  foldr f (trisdata, [], M.fromList (map (,0) edgePoints)) (edgePairs edgePoints)
+rim edgeDiv lod level trisdata corners =
+  foldr f (trisdata, [], M.fromList (map (,0) corners)) (edgePairs corners)
   where
     f (a, b) (tdata@(TrisData verts _), r, m) = case midpoint edgeDiv lod level verts a b of
       Nothing -> (tdata, r ++ [a], m)
       Just p -> let (tdata', i) = addPoint p tdata in (tdata', r ++ [i, a], M.adjust (+ 1) b $ M.adjust (+ 1) a m)
 
+gRim edgeDiv lod level trisdata corners = if length indices == length corners then Nothing else Just r
+  where
+    r@(tdata, indices, map) = rim edgeDiv lod level trisdata corners
+
 addPoint :: Point -> TrisData -> (TrisData, Index)
 addPoint point (TrisData verts indices) = (TrisData (verts ++ [point]) indices, toEnum $ length verts)
 
+avg (x1, y1, z1) (x2, y2, z2) = ((x1 + x2) / 2.0, (y1 + y2) / 2.0, (z1 + z2) / 2.0)
 
-
-avg (x1,y1,z1) (x2,y2,z2) = ((x1+x2)/2.0,(y1+y2)/2.0,(z1+z2)/2.0)
-t = (TrisData [(-0.8,0.0,0.0),(0.4,0.4,0.0),(0.5,-0.6,0.0)] [])
+t = (TrisData [(-0.8, 0.0, 0.0), (0.4, 0.4, 0.0), (0.5, -0.6, 0.0)] [])
 
 -- l = rim avg (\(x,y,z) -> if x < 0 then 2 else 0) 0 t [0,1,2]
 -- l = rim avg (const 2) 0 t [0,1,2]
@@ -88,19 +91,36 @@ t = (TrisData [(-0.8,0.0,0.0),(0.4,0.4,0.0),(0.5,-0.6,0.0)] [])
 --     (TrisData vs is) = d
 --     (remaining, tris) = clips
 
-newdata :: TrisData
-newdata = subdivide avg (const 2) 0 t [0,1,2]
 
-subdivide :: EdgeDivide -> LOD -> Level -> TrisData -> [Index] -> TrisData
-subdivide edgeDiv lod level d start
-  | length start < 3 = d
-  | otherwise = subdivide edgeDiv lod (level + 1) (TrisData vs (is ++ clipped)) remaining
-  where
-    (TrisData vs is, rimIdxs, prio) = rim edgeDiv lod level d start
-    clipOrder = map fst $ sortBy (\(_,y) (_,b) -> compare y b) (M.toList prio)
-    (remaining, clipped) = foldr clipCorner (rimIdxs, []) clipOrder
+leftOfCenter (x, _, _) = if x < 0 then 3 else 1
+
+newdata :: TrisData
+newdata = subdivide2 avg (leftOfCenter) 0 t [0, 1, 2]
+
+-- subdivide :: EdgeDivide -> LOD -> Level -> TrisData -> [Index] -> TrisData
+-- subdivide edgeDiv lod level d start
+--   | length start < 3 = d
+--   | otherwise = subdivide edgeDiv lod (level + 1) (TrisData vs (is ++ clipped)) remaining
+--   where
+--     (TrisData vs is, rimIdxs, prio) = rim edgeDiv lod level d start
+--     clipOrder = map fst $ sortBy (\(_,y) (_,b) -> compare y b) (M.toList prio)
+--     (remaining, clipped) = foldr clipCorner (rimIdxs, []) clipOrder
 
 clipCorner :: Index -> ([Index], [TriIndices]) -> ([Index], [TriIndices])
 clipCorner index (remaining, tris) = (remaining', tris ++ [tri])
   where
     (remaining', tri) = getCorner index remaining
+
+subdivide2 :: EdgeDivide -> LOD -> Level -> TrisData -> [Index] -> TrisData
+subdivide2 edgeDiv lod level d@(TrisData vs is) start
+  | length start < 3 = d
+  | otherwise = case gRim edgeDiv lod level d start of
+      Nothing -> case start of
+        [i, ii, iii] -> TrisData vs (is ++ [(i, ii, iii)])
+        _ -> error "3 is not 3?"
+      Just (d', rimIdxs, prio) -> subdivide2 edgeDiv lod (level + 1) d'' remaining
+        where
+          clipOrder = map fst $ sortBy (\(_, y) (_, b) -> compare y b) (M.toList prio)
+          (remaining, clipped) = foldr clipCorner (rimIdxs, []) clipOrder
+          d'' = foldr runSub d' clipped
+          runSub (i, ii, iii) tdata = subdivide2 edgeDiv lod (level + 1) tdata [i, ii, iii]
